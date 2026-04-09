@@ -1,55 +1,73 @@
 const API = "https://script.google.com/macros/s/AKfycbxD5LDWViOj-HYFi63aegdw4POcOBHsfnJV9MVhC-cIxD5TspfHFTh9GnT5HhYi8AisuQ/exec";
 
+// ================= HELPER =================
 function val(id) {
   return document.getElementById(id)?.value || "";
 }
 
 // ================= LOGIN =================
 async function login() {
-  const nama = document.getElementById("loginNama").value;
-  const pin = document.getElementById("loginPin").value;
+  console.log("Login klik");
+
+  const nama = val("loginNama");
+  const pin = val("loginPin");
 
   if (!nama || !pin) {
     alert("Isi semua!");
     return;
   }
 
-  const res = await fetch(API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
-    body: JSON.stringify({
-      action: "login",
-      nama,
-      pin
-    })
-  });
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: "login",
+        nama,
+        pin
+      })
+    });
 
-  const json = await res.json();
+    const text = await res.text();
+    console.log("LOGIN RESPONSE:", text);
 
-  if (json.status === "success") {
-    localStorage.setItem("user", JSON.stringify(json));
-    initApp();
-  } else {
-    alert("Login gagal");
+    const json = JSON.parse(text);
+
+    if (json.status === "success") {
+      localStorage.setItem("user", JSON.stringify(json));
+      initApp();
+    } else {
+      alert("Login gagal");
+    }
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    alert("Koneksi gagal saat login");
   }
 }
+
+// ================= LOGOUT =================
 function logout() {
-  localStorage.removeItem("teknisi");
+  localStorage.removeItem("user");
   location.reload();
 }
 
+// ================= INIT =================
 function initApp() {
   const user = JSON.parse(localStorage.getItem("user"));
-  document.getElementById("roleBadge").innerText = user.role;
+
   if (!user) return;
 
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("appBox").style.display = "block";
 
   document.getElementById("nama").value = user.nama;
-  
+
+  const roleEl = document.getElementById("roleBadge");
+  if (roleEl) roleEl.innerText = user.role;
+
   setTanggalNow();
   loadData();
 }
@@ -65,12 +83,19 @@ function setTanggalNow() {
 }
 
 // ================= KIRIM =================
-function val(id) {
-  return document.getElementById(id).value;
-}
-
 async function kirim(e) {
   const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user) {
+    alert("Harus login dulu");
+    return;
+  }
+
+  const btn = e?.target;
+  if (btn) {
+    btn.innerText = "Mengirim...";
+    btn.disabled = true;
+  }
 
   const data = {
     action: "save",
@@ -82,19 +107,33 @@ async function kirim(e) {
     status: val("status")
   };
 
-  const res = await fetch(API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
-    body: JSON.stringify(data)
-  });
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(data)
+    });
 
-  const json = await res.json();
+    const json = await res.json();
 
-  if (json.status === "success") {
-    alert("Berhasil");
-    loadData();
+    if (json.status === "success") {
+      alert("Berhasil");
+      clearForm();
+      loadData();
+    } else {
+      alert("Error: " + json.message);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Koneksi gagal");
+  }
+
+  if (btn) {
+    btn.innerText = "🚀 Kirim Laporan";
+    btn.disabled = false;
   }
 }
 
@@ -107,45 +146,48 @@ function clearForm() {
 
 // ================= LOAD DATA =================
 async function loadData() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
 
-  const url = `${API}?nama=${user.nama}&role=${user.role}`;
+    const url = `${API}?nama=${user.nama}&role=${user.role}`;
 
-  const res = await fetch(url);
-  const data = await res.json();
+    const res = await fetch(url);
+    const data = await res.json();
 
-  const el = document.getElementById("list");
-  el.innerHTML = "";
+    const el = document.getElementById("list");
+    if (!el) return;
 
-  data.reverse().forEach(d => {
-    el.innerHTML += `
-      <div class="col-12">
-        <div class="card shadow-sm">
-          <div class="card-body">
+    el.innerHTML = "";
 
-            <div class="d-flex justify-content-between">
-              <b>${d.nama}</b>
-              <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
-                ${d.status}
-              </span>
+    data.reverse().forEach(d => {
+      el.innerHTML += `
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between">
+                <b>${d.nama}</b>
+                <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
+                  ${d.status}
+                </span>
+              </div>
+
+              <small>${d.tanggal || '-'}</small>
+
+              <p class="mb-1"><b>${d.lokasi || '-'}</b> - ${d.pekerjaan || '-'}</p>
+              <p class="text-muted">${d.deskripsi || '-'}</p>
+
             </div>
-
-            <small>${d.tanggal}</small>
-
-            <p><b>${d.lokasi}</b> - ${d.pekerjaan}</p>
-            <p>${d.deskripsi || '-'}</p>
-
           </div>
         </div>
-      </div>
-    `;
-  });
-}
+      `;
+    });
 
   } catch (err) {
-    console.error(err);
+    console.error("LOAD ERROR:", err);
   }
 }
-// INIT
+
+// ================= INIT LOAD =================
 initApp();
-loadData();
