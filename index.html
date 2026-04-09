@@ -5,77 +5,66 @@
   <title>Laporan Teknisi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Bootstrap 5 CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
 </head>
+
 <body class="bg-light">
 
 <div class="container py-4">
 
-  <!-- HEADER -->
-  <div class="text-center mb-4">
-    <h3 class="fw-bold">📋 Laporan Teknisi</h3>
-    <p class="text-muted">Input pekerjaan harian teknisi</p>
+  <!-- LOGIN -->
+  <div id="loginBox" class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">🔐 Login Teknisi</h5>
+      <input id="loginNama" class="form-control mb-3" placeholder="Masukkan nama teknisi">
+      <button class="btn btn-primary w-100" onclick="login()">Masuk</button>
+    </div>
   </div>
 
-  <!-- FORM -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
+  <!-- APP -->
+  <div id="appBox" style="display:none;">
 
-      <div class="mb-3">
-        <label class="form-label">Nama Teknisi</label>
-        <input id="nama" class="form-control" placeholder="Masukkan nama">
-      </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5>📋 Laporan Teknisi</h5>
+      <button class="btn btn-sm btn-danger" onclick="logout()">Logout</button>
+    </div>
 
-      <div class="mb-3">
-        <label class="form-label">Tanggal</label>
-        <input type="date" id="tanggal" class="form-control">
-      </div>
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
 
-      <div class="mb-3">
-        <label class="form-label">Lokasi</label>
-        <input id="lokasi" class="form-control" placeholder="Contoh: Lantai 3">
-      </div>
+        <input id="nama" class="form-control mb-2" readonly>
 
-      <div class="mb-3">
-        <label class="form-label">Jenis Pekerjaan</label>
-        <select id="pekerjaan" class="form-select">
+        <label class="form-label">Tanggal & Jam</label>
+        <input type="datetime-local" id="tanggal" class="form-control mb-2">
+
+        <input id="lokasi" class="form-control mb-2" placeholder="Lokasi">
+
+        <select id="pekerjaan" class="form-select mb-2">
           <option value="">Pilih pekerjaan</option>
           <option>AC</option>
           <option>Listrik</option>
           <option>Air</option>
           <option>Cleaning</option>
         </select>
-      </div>
 
-      <div class="mb-3">
-        <label class="form-label">Deskripsi</label>
-        <textarea id="deskripsi" class="form-control" rows="3"></textarea>
-      </div>
+        <textarea id="deskripsi" class="form-control mb-2" placeholder="Deskripsi"></textarea>
 
-      <div class="mb-3">
-        <label class="form-label">Status</label>
-        <select id="status" class="form-select">
+        <select id="status" class="form-select mb-3">
           <option>Selesai</option>
           <option>Pending</option>
         </select>
+
+        <button class="btn btn-primary w-100" onclick="kirim(event)">
+          🚀 Kirim Laporan
+        </button>
+
       </div>
-
-      <button class="btn btn-primary w-100" onclick="kirim()">
-        🚀 Kirim Laporan
-      </button>
-
     </div>
-  </div>
 
-  <!-- RIWAYAT -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h5 class="mb-0">📊 Riwayat Laporan</h5>
-    <button class="btn btn-sm btn-outline-secondary" onclick="loadData()">Refresh</button>
-  </div>
+    <h6>📊 Riwayat</h6>
+    <div id="list" class="row g-2"></div>
 
-  <div id="list" class="row g-3"></div>
+  </div>
 
 </div>
 
