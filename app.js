@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbzOk6RgxwsbLJJ7bdq2mYJ_HflG7CjJmod66d-aqhEq/dev";
+const API = "https://script.google.com/macros/s/AKfycbxCBcCPfwnHNeuorZo1mffQTgIvC32RTA3u8VxkQAT1adsfv6wzcnXNPHeYGATcpdnW8A/exec";
 
 async function kirim() {
   const data = {
