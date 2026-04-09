@@ -80,6 +80,12 @@
           </select>
         </div>
 
+        <div class="mb-2">
+              <label class="form-label">Foto</label>
+              <input type="file" id="foto" class="form-control" accept="image/*" onchange="previewFoto(event)">
+        </div>
+
+        <img id="preview" class="img-fluid rounded mt-2" style="display:none; max-height:150px;">      
         <button class="btn btn-primary w-100" onclick="kirim(event)">
           🚀 Kirim Laporan
         </button>
