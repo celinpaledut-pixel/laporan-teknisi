@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbzN1hzTyljea_Jc_8IXT2scNUh4fADPVg9dEpQRQSj76LAj--Kxqkt74WuqKZLicGIyeg/exec";
+const API = "https://script.google.com/macros/s/AKfycby9XiYdOOOvRj828qVvw6dIFSOryNAE-CrvqJdiaO2KWJetaw4Ua_80DdRnpWkF8rXPUA/exec";
 
 // ================= STATE =================
 let fotoBase64 = "";
