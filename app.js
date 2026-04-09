@@ -5,18 +5,36 @@ function val(id) {
 }
 
 // ================= LOGIN =================
-function login() {
+async function login() {
   const nama = document.getElementById("loginNama").value;
+  const pin = document.getElementById("loginPin").value;
 
-  if (!nama) {
-    alert("Isi nama!");
+  if (!nama || !pin) {
+    alert("Isi semua!");
     return;
   }
 
-  localStorage.setItem("teknisi", nama);
-  initApp();
-}
+  const res = await fetch(API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify({
+      action: "login",
+      nama,
+      pin
+    })
+  });
 
+  const json = await res.json();
+
+  if (json.status === "success") {
+    localStorage.setItem("user", JSON.stringify(json));
+    initApp();
+  } else {
+    alert("Login gagal");
+  }
+}
 function logout() {
   localStorage.removeItem("teknisi");
   location.reload();
