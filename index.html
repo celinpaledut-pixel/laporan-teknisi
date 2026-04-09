@@ -13,7 +13,7 @@
 
 <div class="container py-4">
 
-  <!-- 🔐 LOGIN -->
+  <!-- LOGIN -->
   <div id="loginBox" class="card shadow-sm mx-auto" style="max-width:400px;">
     <div class="card-body">
       <h5 class="text-center mb-3">🔐 Login Teknisi</h5>
@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <!-- 📱 APP -->
+  <!-- APP -->
   <div id="appBox" style="display:none;">
 
     <!-- HEADER -->
@@ -34,6 +34,34 @@
       <div>
         <span id="roleBadge" class="badge bg-secondary me-2"></span>
         <button class="btn btn-sm btn-danger" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="row text-center mb-3">
+      <div class="col">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <small>Total</small>
+            <h5 id="total">0</h5>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <small>Selesai</small>
+            <h5 id="selesai">0</h5>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <small>Pending</small>
+            <h5 id="pending">0</h5>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -53,7 +81,7 @@
 
         <div class="mb-2">
           <label class="form-label">Lokasi</label>
-          <input id="lokasi" class="form-control" placeholder="Contoh: Lantai 2">
+          <input id="lokasi" class="form-control">
         </div>
 
         <div class="mb-2">
@@ -72,7 +100,7 @@
           <textarea id="deskripsi" class="form-control"></textarea>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-2">
           <label class="form-label">Status</label>
           <select id="status" class="form-select">
             <option>Selesai</option>
@@ -80,12 +108,14 @@
           </select>
         </div>
 
+        <!-- FOTO -->
         <div class="mb-2">
-              <label class="form-label">Foto</label>
-              <input type="file" id="foto" class="form-control" accept="image/*" onchange="previewFoto(event)">
+          <label class="form-label">Foto</label>
+          <input type="file" id="foto" class="form-control" accept="image/*" onchange="previewFoto(event)">
         </div>
 
-        <img id="preview" class="img-fluid rounded mt-2" style="display:none; max-height:150px;">      
+        <img id="preview" class="img-fluid rounded mt-2 mb-2" style="display:none; max-height:150px;">
+
         <button class="btn btn-primary w-100" onclick="kirim(event)">
           🚀 Kirim Laporan
         </button>
