@@ -1,4 +1,4 @@
-const API = "PASTE_URL_WEB_APP_KAMU";
+const API = "https://script.google.com/macros/s/AKfycbzOk6RgxwsbLJJ7bdq2mYJ_HflG7CjJmod66d-aqhEq/dev";
 
 async function kirim() {
   const data = {
