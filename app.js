@@ -1,5 +1,34 @@
-const API = "https://script.google.com/macros/s/AKfycbxD5LDWViOj-HYFi63aegdw4POcOBHsfnJV9MVhC-cIxD5TspfHFTh9GnT5HhYi8AisuQ/exec";
+const API = "https://script.google.com/macros/s/AKfycbzN1hzTyljea_Jc_8IXT2scNUh4fADPVg9dEpQRQSj76LAj--Kxqkt74WuqKZLicGIyeg/exec";
+function uploadBase64Image(base64, fileName) {
+  const folder = DriveApp.getFolderById("1rdedEQFPaJeXxFrGYMg6aTybtm7Y7X51"); // ⚠️ isi ID folder Drive
 
+  const contentType = base64.match(/^data:(image\/\w+);base64,/)[1];
+  const bytes = Utilities.base64Decode(base64.split(",")[1]);
+
+  const blob = Utilities.newBlob(bytes, contentType, fileName);
+  const file = folder.createFile(blob);
+
+  return file.getUrl();
+}
+
+let fotoBase64 = "";
+
+function previewFoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(evt) {
+    fotoBase64 = evt.target.result;
+
+    const img = document.getElementById("preview");
+    img.src = fotoBase64;
+    img.style.display = "block";
+  };
+
+  reader.readAsDataURL(file);
+}
 // ================= HELPER =================
 function val(id) {
   return document.getElementById(id)?.value || "";
@@ -104,7 +133,8 @@ async function kirim(e) {
     lokasi: val("lokasi"),
     pekerjaan: val("pekerjaan"),
     deskripsi: val("deskripsi"),
-    status: val("status")
+    status: val("status"),
+    foto: fotoBase64
   };
 
   try {
