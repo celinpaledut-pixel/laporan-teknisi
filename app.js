@@ -1,18 +1,9 @@
 const API = "https://script.google.com/macros/s/AKfycbzN1hzTyljea_Jc_8IXT2scNUh4fADPVg9dEpQRQSj76LAj--Kxqkt74WuqKZLicGIyeg/exec";
-function uploadBase64Image(base64, fileName) {
-  const folder = DriveApp.getFolderById("1rdedEQFPaJeXxFrGYMg6aTybtm7Y7X51"); // ⚠️ isi ID folder Drive
 
-  const contentType = base64.match(/^data:(image\/\w+);base64,/)[1];
-  const bytes = Utilities.base64Decode(base64.split(",")[1]);
-
-  const blob = Utilities.newBlob(bytes, contentType, fileName);
-  const file = folder.createFile(blob);
-
-  return file.getUrl();
-}
-
+// ================= STATE =================
 let fotoBase64 = "";
 
+// ================= FOTO =================
 function previewFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -25,10 +16,13 @@ function previewFoto(e) {
     const img = document.getElementById("preview");
     img.src = fotoBase64;
     img.style.display = "block";
+
+    console.log("Foto siap dikirim");
   };
 
   reader.readAsDataURL(file);
 }
+
 // ================= HELPER =================
 function val(id) {
   return document.getElementById(id)?.value || "";
@@ -36,8 +30,6 @@ function val(id) {
 
 // ================= LOGIN =================
 async function login() {
-  console.log("Login klik");
-
   const nama = val("loginNama");
   const pin = val("loginPin");
 
@@ -59,10 +51,7 @@ async function login() {
       })
     });
 
-    const text = await res.text();
-    console.log("LOGIN RESPONSE:", text);
-
-    const json = JSON.parse(text);
+    const json = await res.json();
 
     if (json.status === "success") {
       localStorage.setItem("user", JSON.stringify(json));
@@ -72,7 +61,7 @@ async function login() {
     }
 
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
+    console.error(err);
     alert("Koneksi gagal saat login");
   }
 }
@@ -86,7 +75,6 @@ function logout() {
 // ================= INIT =================
 function initApp() {
   const user = JSON.parse(localStorage.getItem("user"));
-
   if (!user) return;
 
   document.getElementById("loginBox").style.display = "none";
@@ -117,6 +105,11 @@ async function kirim(e) {
 
   if (!user) {
     alert("Harus login dulu");
+    return;
+  }
+
+  if (!fotoBase64) {
+    alert("Foto wajib diisi");
     return;
   }
 
@@ -172,6 +165,11 @@ function clearForm() {
   document.getElementById("lokasi").value = "";
   document.getElementById("pekerjaan").value = "";
   document.getElementById("deskripsi").value = "";
+
+  fotoBase64 = "";
+
+  const img = document.getElementById("preview");
+  if (img) img.style.display = "none";
 }
 
 // ================= LOAD DATA =================
@@ -190,6 +188,16 @@ async function loadData() {
 
     el.innerHTML = "";
 
+    // ================= DASHBOARD =================
+    const total = data.length;
+    const selesai = data.filter(d => d.status === "Selesai").length;
+    const pending = data.filter(d => d.status === "Pending").length;
+
+    document.getElementById("total").innerText = total;
+    document.getElementById("selesai").innerText = selesai;
+    document.getElementById("pending").innerText = pending;
+
+    // ================= LIST =================
     data.reverse().forEach(d => {
       el.innerHTML += `
         <div class="col-12">
@@ -207,15 +215,9 @@ async function loadData() {
 
               <p class="mb-1"><b>${d.lokasi || '-'}</b> - ${d.pekerjaan || '-'}</p>
               <p class="text-muted">${d.deskripsi || '-'}</p>
-              ${d.foto ? `<img src="${d.foto}" class="img-fluid mt-2 rounded">` : ""}
-              
-              let total = data.length;
-let selesai = data.filter(d => d.status === "Selesai").length;
-let pending = data.filter(d => d.status === "Pending").length;
 
-document.getElementById("total").innerText = total;
-document.getElementById("selesai").innerText = selesai;
-document.getElementById("pending").innerText = pending;
+              ${d.foto ? `<img src="${d.foto}" class="img-fluid mt-2 rounded">` : ""}
+
             </div>
           </div>
         </div>
@@ -227,5 +229,5 @@ document.getElementById("pending").innerText = pending;
   }
 }
 
-// ================= INIT LOAD =================
+// ================= INIT =================
 initApp();
