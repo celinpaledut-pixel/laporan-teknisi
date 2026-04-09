@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbzZTLMRCOURmqpCUJQ3ilGZTn1iQ1QJN98JbBnkh0ZEolcEpUKQlL0zHvsR5l_x6sf_FA/exec";
+const API = "https://script.google.com/macros/s/AKfycbxl67yrIzvGiDuN8kN_wdgrXMXl1VKcNTZdTTKfUow4gsdxhiV2Wq5gGFq37hOMLudX2w/exec";
 
 function val(id) {
   return document.getElementById(id)?.value || "";
@@ -41,16 +41,17 @@ function logout() {
 }
 
 function initApp() {
-  const nama = localStorage.getItem("teknisi");
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  if (nama) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("appBox").style.display = "block";
-    document.getElementById("nama").value = nama;
+  if (!user) return;
 
-    setTanggalNow();
-    loadData();
-  }
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("appBox").style.display = "block";
+
+  document.getElementById("nama").value = user.nama;
+
+  setTanggalNow();
+  loadData();
 }
 
 // ================= AUTO TANGGAL =================
@@ -69,12 +70,11 @@ function val(id) {
 }
 
 async function kirim(e) {
-  const btn = e.target;
-  btn.innerText = "Mengirim...";
-  btn.disabled = true;
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const data = {
-    nama: val("nama"),
+    action: "save",
+    nama: user.nama,
     tanggal: val("tanggal"),
     lokasi: val("lokasi"),
     pekerjaan: val("pekerjaan"),
@@ -82,38 +82,20 @@ async function kirim(e) {
     status: val("status")
   };
 
-  if (!data.nama || !data.tanggal) {
-    alert("Data wajib belum lengkap");
-    btn.innerText = "🚀 Kirim Laporan";
-    btn.disabled = false;
-    return;
+  const res = await fetch(API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify(data)
+  });
+
+  const json = await res.json();
+
+  if (json.status === "success") {
+    alert("Berhasil");
+    loadData();
   }
-
-  try {
-    const res = await fetch(API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify(data)
-    });
-
-    const json = await res.json();
-
-    if (json.status === "success") {
-      alert("Berhasil!");
-      clearForm();
-      loadData();
-    } else {
-      alert("Error: " + json.message);
-    }
-
-  } catch (err) {
-    alert("Koneksi gagal");
-  }
-
-  btn.innerText = "🚀 Kirim Laporan";
-  btn.disabled = false;
 }
 
 // ================= CLEAR =================
@@ -125,40 +107,40 @@ function clearForm() {
 
 // ================= LOAD DATA =================
 async function loadData() {
-  try {
-    const res = await fetch(API);
-    const data = await res.json();
+  const user = JSON.parse(localStorage.getItem("user"));
 
-    const el = document.getElementById("list");
-    el.innerHTML = "";
+  const url = `${API}?nama=${user.nama}&role=${user.role}`;
 
-    data.reverse().forEach(d => {
-      el.innerHTML += `
-        <div class="col-12">
-          <div class="card shadow-sm">
-            <div class="card-body">
+  const res = await fetch(url);
+  const data = await res.json();
 
-              <div class="d-flex justify-content-between">
-                <b>${d.nama}</b>
-                <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
-                  ${d.status}
-                </span>
-              </div>
+  const el = document.getElementById("list");
+  el.innerHTML = "";
 
-              <small class="text-muted">${d.tanggal || "-"}</small>
+  data.reverse().forEach(d => {
+    el.innerHTML += `
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-body">
 
-              <p class="mb-1 mt-2"><b>Lokasi:</b> ${d.lokasi || "-"}</p>
-              <p class="mb-1"><b>Pekerjaan:</b> ${d.pekerjaan || "-"}</p>
-
-              <p class="mb-0 text-muted">
-                <b>Deskripsi:</b> ${d.deskripsi ? d.deskripsi : "<i>Tidak ada deskripsi</i>"}
-              </p>
-
+            <div class="d-flex justify-content-between">
+              <b>${d.nama}</b>
+              <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
+                ${d.status}
+              </span>
             </div>
+
+            <small>${d.tanggal}</small>
+
+            <p><b>${d.lokasi}</b> - ${d.pekerjaan}</p>
+            <p>${d.deskripsi || '-'}</p>
+
           </div>
         </div>
-      `;
-    });
+      </div>
+    `;
+  });
+}
 
   } catch (err) {
     console.error(err);
