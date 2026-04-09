@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbxCBcCPfwnHNeuorZo1mffQTgIvC32RTA3u8VxkQAT1adsfv6wzcnXNPHeYGATcpdnW8A/exec";
+const API = "https://script.google.com/macros/s/AKfycbzZTLMRCOURmqpCUJQ3ilGZTn1iQ1QJN98JbBnkh0ZEolcEpUKQlL0zHvsR5l_x6sf_FA/exec";
 
 function val(id) {
   return document.getElementById(id)?.value || "";
