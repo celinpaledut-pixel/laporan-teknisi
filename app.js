@@ -207,7 +207,15 @@ async function loadData() {
 
               <p class="mb-1"><b>${d.lokasi || '-'}</b> - ${d.pekerjaan || '-'}</p>
               <p class="text-muted">${d.deskripsi || '-'}</p>
+              ${d.foto ? `<img src="${d.foto}" class="img-fluid mt-2 rounded">` : ""}
+              
+              let total = data.length;
+let selesai = data.filter(d => d.status === "Selesai").length;
+let pending = data.filter(d => d.status === "Pending").length;
 
+document.getElementById("total").innerText = total;
+document.getElementById("selesai").innerText = selesai;
+document.getElementById("pending").innerText = pending;
             </div>
           </div>
         </div>
