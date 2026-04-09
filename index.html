@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Laporan Teknisi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>📋 Laporan Teknisi</h2>
+
+<input id="nama" placeholder="Nama Teknisi">
+
+<input type="date" id="tanggal">
+
+<input id="lokasi" placeholder="Lokasi">
+
+<select id="pekerjaan">
+  <option value="">Pilih Pekerjaan</option>
+  <option>AC</option>
+  <option>Listrik</option>
+  <option>Air</option>
+  <option>Cleaning</option>
+</select>
+
+<textarea id="deskripsi" placeholder="Deskripsi pekerjaan"></textarea>
+
+<select id="status">
+  <option>Selesai</option>
+  <option>Pending</option>
+</select>
+
+<button onclick="kirim()">Kirim</button>
+
+<hr>
+
+<h3>Riwayat</h3>
+<div id="list"></div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
