@@ -18,10 +18,16 @@ async function kirim() {
   try {
     const res = await fetch(API, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(data)
     });
 
-    const json = await res.json();
+    const text = await res.text();
+    console.log("RAW RESPONSE:", text);
+
+    const json = JSON.parse(text);
 
     if (json.status === "success") {
       alert("Berhasil kirim!");
@@ -32,38 +38,7 @@ async function kirim() {
     }
 
   } catch (err) {
-    alert("Koneksi error");
+    console.error(err);
+    alert("Koneksi gagal / API tidak bisa diakses");
   }
 }
-
-function val(id) {
-  return document.getElementById(id).value;
-}
-
-function clearForm() {
-  ["tanggal","lokasi","pekerjaan","deskripsi"].forEach(id => {
-    document.getElementById(id).value = "";
-  });
-}
-
-async function loadData() {
-  const res = await fetch(API);
-  const data = await res.json();
-
-  const el = document.getElementById("list");
-  el.innerHTML = "";
-
-  data.reverse().forEach(d => {
-    el.innerHTML += `
-      <div class="card">
-        <b>${d.nama}</b><br>
-        ${d.tanggal}<br>
-        ${d.lokasi}<br>
-        ${d.pekerjaan}<br>
-        <small>${d.status}</small>
-      </div>
-    `;
-  });
-}
-
-loadData();
