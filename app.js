@@ -4,8 +4,56 @@ function val(id) {
   return document.getElementById(id)?.value || "";
 }
 
-async function kirim() {
-  console.log("Tombol diklik");
+// ================= LOGIN =================
+function login() {
+  const nama = document.getElementById("loginNama").value;
+
+  if (!nama) {
+    alert("Isi nama!");
+    return;
+  }
+
+  localStorage.setItem("teknisi", nama);
+  initApp();
+}
+
+function logout() {
+  localStorage.removeItem("teknisi");
+  location.reload();
+}
+
+function initApp() {
+  const nama = localStorage.getItem("teknisi");
+
+  if (nama) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("appBox").style.display = "block";
+    document.getElementById("nama").value = nama;
+
+    setTanggalNow();
+    loadData();
+  }
+}
+
+// ================= AUTO TANGGAL =================
+function setTanggalNow() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+
+  document.getElementById("tanggal").value = local;
+}
+
+// ================= KIRIM =================
+function val(id) {
+  return document.getElementById(id).value;
+}
+
+async function kirim(e) {
+  const btn = e.target;
+  btn.innerText = "Mengirim...";
+  btn.disabled = true;
 
   const data = {
     nama: val("nama"),
@@ -16,48 +64,48 @@ async function kirim() {
     status: val("status")
   };
 
-  console.log("DATA:", data);
-
   if (!data.nama || !data.tanggal) {
-    alert("Nama & tanggal wajib!");
+    alert("Data wajib belum lengkap");
+    btn.innerText = "🚀 Kirim Laporan";
+    btn.disabled = false;
     return;
   }
 
   try {
-   const res = await fetch(API, {
-  method: "POST",
-  headers: {
-    "Content-Type": "text/plain;charset=utf-8"
-  },
-  body: JSON.stringify(data)
-});
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(data)
+    });
 
-    const text = await res.text();
-    console.log("RESPONSE:", text);
-
-    const json = JSON.parse(text);
+    const json = await res.json();
 
     if (json.status === "success") {
-      alert("Berhasil kirim!");
-      loadData();
+      alert("Berhasil!");
       clearForm();
+      loadData();
     } else {
       alert("Error: " + json.message);
     }
 
   } catch (err) {
-    console.error("ERROR:", err);
     alert("Koneksi gagal");
   }
+
+  btn.innerText = "🚀 Kirim Laporan";
+  btn.disabled = false;
 }
 
+// ================= CLEAR =================
 function clearForm() {
-  ["tanggal","lokasi","pekerjaan","deskripsi"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
+  document.getElementById("lokasi").value = "";
+  document.getElementById("pekerjaan").value = "";
+  document.getElementById("deskripsi").value = "";
 }
 
+// ================= LOAD DATA =================
 async function loadData() {
   try {
     const res = await fetch(API);
@@ -69,22 +117,14 @@ async function loadData() {
     data.reverse().forEach(d => {
       el.innerHTML += `
         <div class="col-12">
-          <div class="card shadow-sm">
+          <div class="card">
             <div class="card-body">
-
-              <div class="d-flex justify-content-between">
-                <h6 class="fw-bold mb-1">${d.nama}</h6>
-                <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
-                  ${d.status}
-                </span>
-              </div>
-
-              <small class="text-muted">${d.tanggal}</small>
-
-              <p class="mb-1 mt-2"><b>Lokasi:</b> ${d.lokasi}</p>
-              <p class="mb-1"><b>Pekerjaan:</b> ${d.pekerjaan}</p>
-              <p class="mb-0 text-muted">${d.deskripsi || '-'}</p>
-
+              <b>${d.nama}</b><br>
+              <small>${d.tanggal}</small><br>
+              ${d.lokasi} - ${d.pekerjaan}<br>
+              <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
+                ${d.status}
+              </span>
             </div>
           </div>
         </div>
@@ -95,4 +135,7 @@ async function loadData() {
     console.error(err);
   }
 }
+
+// INIT
+initApp();
 loadData();
