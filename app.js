@@ -42,14 +42,14 @@ function logout() {
 
 function initApp() {
   const user = JSON.parse(localStorage.getItem("user"));
-
+  document.getElementById("roleBadge").innerText = user.role;
   if (!user) return;
 
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("appBox").style.display = "block";
 
   document.getElementById("nama").value = user.nama;
-
+  
   setTanggalNow();
   loadData();
 }
