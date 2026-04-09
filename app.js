@@ -117,14 +117,25 @@ async function loadData() {
     data.reverse().forEach(d => {
       el.innerHTML += `
         <div class="col-12">
-          <div class="card">
+          <div class="card shadow-sm">
             <div class="card-body">
-              <b>${d.nama}</b><br>
-              <small>${d.tanggal}</small><br>
-              ${d.lokasi} - ${d.pekerjaan}<br>
-              <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
-                ${d.status}
-              </span>
+
+              <div class="d-flex justify-content-between">
+                <b>${d.nama}</b>
+                <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
+                  ${d.status}
+                </span>
+              </div>
+
+              <small class="text-muted">${d.tanggal || "-"}</small>
+
+              <p class="mb-1 mt-2"><b>Lokasi:</b> ${d.lokasi || "-"}</p>
+              <p class="mb-1"><b>Pekerjaan:</b> ${d.pekerjaan || "-"}</p>
+
+              <p class="mb-0 text-muted">
+                <b>Deskripsi:</b> ${d.deskripsi ? d.deskripsi : "<i>Tidak ada deskripsi</i>"}
+              </p>
+
             </div>
           </div>
         </div>
@@ -135,7 +146,6 @@ async function loadData() {
     console.error(err);
   }
 }
-
 // INIT
 initApp();
 loadData();
