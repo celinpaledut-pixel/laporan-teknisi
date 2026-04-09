@@ -64,25 +64,35 @@ async function loadData() {
     const data = await res.json();
 
     const el = document.getElementById("list");
-    if (!el) return;
-
     el.innerHTML = "";
 
     data.reverse().forEach(d => {
       el.innerHTML += `
-        <div class="card">
-          <b>${d.nama}</b><br>
-          ${d.tanggal}<br>
-          ${d.lokasi}<br>
-          ${d.pekerjaan}<br>
-          <small>${d.status}</small>
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between">
+                <h6 class="fw-bold mb-1">${d.nama}</h6>
+                <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
+                  ${d.status}
+                </span>
+              </div>
+
+              <small class="text-muted">${d.tanggal}</small>
+
+              <p class="mb-1 mt-2"><b>Lokasi:</b> ${d.lokasi}</p>
+              <p class="mb-1"><b>Pekerjaan:</b> ${d.pekerjaan}</p>
+              <p class="mb-0 text-muted">${d.deskripsi || '-'}</p>
+
+            </div>
+          </div>
         </div>
       `;
     });
 
   } catch (err) {
-    console.error("Load error:", err);
+    console.error(err);
   }
 }
-
 loadData();
