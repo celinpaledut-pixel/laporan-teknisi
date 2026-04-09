@@ -1,6 +1,12 @@
 const API = "https://script.google.com/macros/s/AKfycbxCBcCPfwnHNeuorZo1mffQTgIvC32RTA3u8VxkQAT1adsfv6wzcnXNPHeYGATcpdnW8A/exec";
 
+function val(id) {
+  return document.getElementById(id)?.value || "";
+}
+
 async function kirim() {
+  console.log("Tombol diklik");
+
   const data = {
     nama: val("nama"),
     tanggal: val("tanggal"),
@@ -9,6 +15,8 @@ async function kirim() {
     deskripsi: val("deskripsi"),
     status: val("status")
   };
+
+  console.log("DATA:", data);
 
   if (!data.nama || !data.tanggal) {
     alert("Nama & tanggal wajib!");
@@ -25,7 +33,7 @@ async function kirim() {
     });
 
     const text = await res.text();
-    console.log("RAW RESPONSE:", text);
+    console.log("RESPONSE:", text);
 
     const json = JSON.parse(text);
 
@@ -38,7 +46,43 @@ async function kirim() {
     }
 
   } catch (err) {
-    console.error(err);
-    alert("Koneksi gagal / API tidak bisa diakses");
+    console.error("ERROR:", err);
+    alert("Koneksi gagal");
   }
 }
+
+function clearForm() {
+  ["tanggal","lokasi","pekerjaan","deskripsi"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(API);
+    const data = await res.json();
+
+    const el = document.getElementById("list");
+    if (!el) return;
+
+    el.innerHTML = "";
+
+    data.reverse().forEach(d => {
+      el.innerHTML += `
+        <div class="card">
+          <b>${d.nama}</b><br>
+          ${d.tanggal}<br>
+          ${d.lokasi}<br>
+          ${d.pekerjaan}<br>
+          <small>${d.status}</small>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    console.error("Load error:", err);
+  }
+}
+
+loadData();
