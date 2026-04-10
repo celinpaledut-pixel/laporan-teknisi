@@ -3,6 +3,33 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyd4EC_rPpI0f0aM_sMK4Q-
 let user = {};
 let editRow = null;
 
+document.addEventListener("DOMContentLoaded", () => {
+  const fotoInput = document.getElementById("foto");
+
+  fotoInput.addEventListener("change", function () {
+    const file = this.files[0];
+
+    if (!file) return;
+
+    // VALIDASI
+    if (!file.type.startsWith("image/")) {
+      alert("File harus gambar");
+      this.value = "";
+      return;
+    }
+
+    // PREVIEW
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const preview = document.getElementById("previewImg");
+      preview.src = e.target.result;
+      preview.style.display = "block";
+    };
+
+    reader.readAsDataURL(file);
+  });
+});
+
 // ================= LOGIN =================
 async function login() {
   const nama = document.getElementById("nama").value;
@@ -53,21 +80,34 @@ function setTanggal() {
 
 // ================= BASE64 FOTO =================
 function toBase64(file) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!file) return resolve("");
 
     const reader = new FileReader();
-    reader.readAsDataURL(file);
 
-    reader.onload = () => resolve(reader.result);
+    reader.onloadend = () => {
+      resolve(reader.result || "");
+    };
+
     reader.onerror = () => resolve("");
+
+    reader.readAsDataURL(file);
   });
 }
 
 // ================= SIMPAN =================
 async function simpan() {
   const fileInput = document.getElementById("foto");
-  const file = fileInput.files[0];
+const file = fileInput.files[0];
+
+let base64 = "";
+
+if (file) {
+  base64 = await toBase64(file);
+
+  // DEBUG (hapus kalau sudah yakin)
+  console.log("Foto size:", base64.length);
+}
 
   const base64 = await toBase64(file);
 
@@ -86,6 +126,8 @@ async function simpan() {
       status: document.getElementById("status").value,
       foto: base64
     })
+    document.getElementById("previewImg").style.display = "none";
+document.getElementById("previewImg").src = "";
   });
 
   // reset form
