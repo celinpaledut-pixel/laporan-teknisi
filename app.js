@@ -1,6 +1,7 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwOinLMtkrtu6b2CIXOryRaCt5N84hYwFp0pVAwfcEeenXMRt29LD5dwfNlntBVMJBrlQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyd4EC_rPpI0f0aM_sMK4Q-bZ3sREech1P_BPBWXRZ7oZcRRSF2NbHsLn6DA_aWNwmxGA/exec";
 
 let user = {};
+let editRow = null;
 
 // ================= LOGIN =================
 async function login() {
@@ -16,111 +17,142 @@ async function login() {
 
   if (data.status === "success") {
     user = data;
+    loginBox.style.display = "none";
+    appBox.style.display = "block";
 
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("appBox").style.display = "block";
-
-    setTanggalNow();
+    setTanggal();
     loadData();
   } else {
     alert("Login gagal");
   }
 }
 
-// ================= AUTO TANGGAL =================
-function setTanggalNow() {
+// ================= TANGGAL =================
+function setTanggal() {
   const now = new Date();
-  document.getElementById("tanggal").value =
-    now.toLocaleDateString() + " " + now.toLocaleTimeString();
-}
-
-// ================= SIMPAN =================
-async function simpan() {
-  const file = document.getElementById("foto").files[0];
-
-  let base64 = "";
-
-  if (file) {
-    base64 = await toBase64(file);
-  }
-
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "save",
-      nama: user.nama,
-      tanggal: document.getElementById("tanggal").value,
-      lokasi: document.getElementById("lokasi").value,
-      pekerjaan: document.getElementById("pekerjaan").value,
-      deskripsi: document.getElementById("deskripsi").value,
-      status: "Selesai",
-      foto: base64
-    })
-  });
-
-  loadData();
+  tanggal.value = now.toLocaleString();
 }
 
 // ================= BASE64 =================
 function toBase64(file) {
-  return new Promise((resolve, reject) => {
+  return new Promise((res, rej) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
+    reader.onload = () => res(reader.result);
   });
 }
 
-// ================= LOAD DATA =================
+// ================= SIMPAN =================
+async function simpan() {
+  const file = foto.files[0];
+  let base64 = "";
+
+  if (file) base64 = await toBase64(file);
+
+  const action = editRow ? "edit" : "save";
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action,
+      row: editRow,
+      nama: user.nama,
+      tanggal: tanggal.value,
+      lokasi: lokasi.value,
+      pekerjaan: pekerjaan.value,
+      deskripsi: deskripsi.value,
+      status: status.value,
+      foto: base64
+    })
+  });
+
+  editRow = null;
+  loadData();
+}
+
+// ================= LOAD =================
 async function loadData() {
-  try {
-    const res = await fetch(API_URL + "?nama=" + user.nama);
-    const data = await res.json();
+  const res = await fetch(API_URL + "?nama=" + user.nama + "&role=" + user.role);
+  const data = await res.json();
 
-    let html = "";
+  let html = "";
 
-    if (data.length === 0) {
-      html = `<div class="alert alert-warning">Belum ada laporan</div>`;
-    }
+  data.forEach(d => {
+    html += `
+    <div class="card mb-3">
+      <div class="card-body">
 
-    data.forEach(d => {
+        <h6>${d.pekerjaan}</h6>
+        <small>${d.nama} | ${d.tanggal}</small>
 
-      html += `
-        <div class="card mb-3">
-          <div class="card-body">
+        <p>${d.deskripsi}</p>
 
-            <h6>${d.pekerjaan}</h6>
-            <small>${d.tanggal} - ${d.lokasi}</small>
+        <span class="badge bg-info">${d.status}</span>
+        <span class="badge bg-${d.approval === 'Approved' ? 'primary' : 'warning'}">
+          ${d.approval}
+        </span>
 
-            <p>${d.deskripsi}</p>
+        ${d.foto ? `
+        <img src="${d.foto}" class="img-fluid mt-2"
+             style="max-height:150px; cursor:pointer;"
+             onclick="showImg('${d.foto}')">
+        ` : ""}
 
-            <span class="badge bg-${d.approval === 'Approved' ? 'primary' : 'warning'}">
-              ${d.approval}
-            </span>
+        <div class="mt-2">
 
-            ${d.foto ? `
-              <img src="${d.foto}"
-                   class="img-fluid mt-2 rounded"
-                   style="max-height:150px; cursor:pointer;"
-                   onclick="showImg('${d.foto}')"
-                   onerror="this.style.display='none'">
-            ` : ""}
+          ${d.approval !== "Approved" ? `
+            <button onclick="editData(${d.row}, '${d.tanggal}', '${d.lokasi}', '${d.pekerjaan}', '${d.deskripsi}', '${d.status}')"
+              class="btn btn-sm btn-warning">Edit</button>
 
-          </div>
+            <button onclick="hapus(${d.row})"
+              class="btn btn-sm btn-danger">Hapus</button>
+          ` : ""}
+
+          ${user.role === "admin" && d.approval !== "Approved" ? `
+            <button onclick="approve(${d.row})"
+              class="btn btn-sm btn-primary">Approve</button>
+          ` : ""}
+
         </div>
-      `;
-    });
 
-    document.getElementById("listData").innerHTML = html;
+      </div>
+    </div>
+    `;
+  });
 
-  } catch (e) {
-    document.getElementById("listData").innerHTML =
-      `<div class="alert alert-danger">Gagal load data</div>`;
-  }
+  listData.innerHTML = html;
+}
+
+// ================= EDIT =================
+function editData(row, t, l, p, d, s) {
+  editRow = row;
+  tanggal.value = t;
+  lokasi.value = l;
+  pekerjaan.value = p;
+  deskripsi.value = d;
+  status.value = s;
+}
+
+// ================= DELETE =================
+async function hapus(row) {
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "delete", row })
+  });
+  loadData();
+}
+
+// ================= APPROVE =================
+async function approve(row) {
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "approve", row })
+  });
+  loadData();
 }
 
 // ================= ZOOM =================
 function showImg(src) {
-  document.getElementById("modalImg").src = src;
-  new bootstrap.Modal(document.getElementById("imgModal")).show();
+  modalImg.src = src;
+  new bootstrap.Modal(imgModal).show();
 }
