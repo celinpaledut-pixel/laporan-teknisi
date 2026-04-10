@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbzPsz-7ZJ93OIEwZkyWvqwmomHXH_wPiAi_rwSNjo1JwqSBzdCG_6Jb1k6oCNtXMBGOSg/exec";
+const API = "https://script.google.com/macros/s/AKfycbw9uoMYnQe8elfKxqrqlZ5WS3v2RuHv2W9tPbKS-zY8CXh2ggKhAkGwn-JX0zgEtjc/exec";
 
 // ================= STATE =================
 let fotoBase64 = "";
@@ -224,6 +224,11 @@ function clearForm() {
   if (img) img.style.display = "none";
 }
 
+function zoomImage(src) {
+  document.getElementById("modalImg").src = src;
+  const modal = new bootstrap.Modal(document.getElementById("imgModal"));
+  modal.show();
+}
 // ================= LOAD =================
 async function loadData() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -269,7 +274,12 @@ async function loadData() {
             <p><b>${d.lokasi}</b> - ${d.pekerjaan}</p>
             <p>${d.deskripsi || "-"}</p>
 
-            ${d.foto ? `<img src="${d.foto}" class="img-fluid rounded mt-2">` : ""}
+            ${d.foto ? `
+  <img src="${d.foto}" 
+       class="img-fluid rounded mt-2"
+       style="cursor:pointer; max-height:150px;"
+       onclick="zoomImage('${d.foto}')">
+` : ""}
 
             <div class="mt-2 d-flex gap-2">
               ${actions}
