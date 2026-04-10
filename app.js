@@ -134,11 +134,10 @@ async function simpan() {
     loadData();
 
   } catch (err) {
-    console.error(err);
+    console.error("ERROR SIMPAN:", err);
     alert("Gagal simpan");
   }
 }
-
 // ================= RESET =================
 function resetForm() {
   editRow = null;
