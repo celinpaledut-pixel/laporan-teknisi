@@ -1,5 +1,5 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbw4Wz4WODnBNYp-ac6Ko3BDRlKbCzue3sKCfbWBRtUwdlFFGWHfXomvkEhB4J35PBylQg/exec";
- 
+const API_URL = "https://script.google.com/macros/s/AKfycbwqGIZQLat-VL_4E1xuz6Nq5gsL8cDt4w2H2UUiEHKXHf8rIueavzpE2_xe0Te8VODxjw/exec";
+
 let user = {};
 let editRow = null;
 let fotoBase64 = ""; // 🔥 FIX UTAMA
