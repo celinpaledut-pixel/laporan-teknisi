@@ -5,6 +5,21 @@ let fotoBase64 = "";
 let editMode = false;
 let editRow = null;
 
+function fixImageUrl(url) {
+  if (!url) return "";
+
+  // format: /file/d/ID/view
+  const match = url.match(/\/d\/(.*?)\//);
+  if (match) {
+    return "https://drive.google.com/uc?id=" + match[1];
+  }
+
+  // sudah format uc?id
+  if (url.includes("uc?id=")) return url;
+
+  // fallback
+  return url;
+}
 // ================= FOTO =================
 function previewFoto(e) {
   const file = e.target.files[0];
