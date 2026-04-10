@@ -126,10 +126,13 @@ async function simpan() {
     formData.append("data", JSON.stringify(payload));
 
     await fetch(API_URL, {
-      method: "POST",
-      body: formData
-    });
-
+  method: "POST",
+  headers: {
+    "Content-Type": "text/plain;charset=utf-8"
+  },
+  body: JSON.stringify(payload)
+});
+    
     resetForm();
     loadData();
 
