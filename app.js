@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbzABIeV0FElG2B8D4WGEtbQ14jeurooSmndJtRVkSCEaZQhcgPnGSySj6RV9kFf-4ei/exec";
+const API = "https://script.google.com/macros/s/AKfycbzPsz-7ZJ93OIEwZkyWvqwmomHXH_wPiAi_rwSNjo1JwqSBzdCG_6Jb1k6oCNtXMBGOSg/exec";
 
 // ================= STATE =================
 let fotoBase64 = "";
@@ -16,8 +16,6 @@ function previewFoto(e) {
     const img = document.getElementById("preview");
     img.src = fotoBase64;
     img.style.display = "block";
-
-    console.log("Foto siap dikirim");
   };
 
   reader.readAsDataURL(file);
@@ -41,14 +39,8 @@ async function login() {
   try {
     const res = await fetch(API, {
       method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        action: "login",
-        nama,
-        pin
-      })
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "login", nama, pin })
     });
 
     const json = await res.json();
@@ -61,8 +53,7 @@ async function login() {
     }
 
   } catch (err) {
-    console.error(err);
-    alert("Koneksi gagal saat login");
+    alert("Koneksi gagal");
   }
 }
 
@@ -89,7 +80,7 @@ function initApp() {
   loadData();
 }
 
-// ================= AUTO TANGGAL =================
+// ================= TANGGAL =================
 function setTanggalNow() {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
@@ -102,22 +93,9 @@ function setTanggalNow() {
 // ================= KIRIM =================
 async function kirim(e) {
   const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return alert("Login dulu");
 
-  if (!user) {
-    alert("Harus login dulu");
-    return;
-  }
-
-  if (!fotoBase64) {
-    alert("Foto wajib diisi");
-    return;
-  }
-
-  const btn = e?.target;
-  if (btn) {
-    btn.innerText = "Mengirim...";
-    btn.disabled = true;
-  }
+  if (!fotoBase64) return alert("Foto wajib");
 
   const data = {
     action: "save",
@@ -130,34 +108,15 @@ async function kirim(e) {
     foto: fotoBase64
   };
 
-  try {
-    const res = await fetch(API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify(data)
-    });
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify(data)
+  });
 
-    const json = await res.json();
-
-    if (json.status === "success") {
-      alert("Berhasil");
-      clearForm();
-      loadData();
-    } else {
-      alert("Error: " + json.message);
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert("Koneksi gagal");
-  }
-
-  if (btn) {
-    btn.innerText = "🚀 Kirim Laporan";
-    btn.disabled = false;
-  }
+  alert("Berhasil");
+  clearForm();
+  loadData();
 }
 
 // ================= CLEAR =================
@@ -165,68 +124,118 @@ function clearForm() {
   document.getElementById("lokasi").value = "";
   document.getElementById("pekerjaan").value = "";
   document.getElementById("deskripsi").value = "";
-
   fotoBase64 = "";
 
   const img = document.getElementById("preview");
   if (img) img.style.display = "none";
 }
 
+// ================= ACTION =================
+async function approve(row) {
+  if (!confirm("Approve laporan?")) return;
+
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ action: "approve", row })
+  });
+
+  loadData();
+}
+
+async function hapus(row) {
+  if (!confirm("Hapus laporan?")) return;
+
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ action: "delete", row })
+  });
+
+  loadData();
+}
+
+async function editData(row) {
+  const lokasi = prompt("Lokasi baru:");
+  if (!lokasi) return;
+
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({
+      action: "edit",
+      row,
+      tanggal: val("tanggal"),
+      lokasi,
+      pekerjaan: val("pekerjaan"),
+      deskripsi: val("deskripsi"),
+      status: val("status")
+    })
+  });
+
+  loadData();
+}
+
 // ================= LOAD DATA =================
 async function loadData() {
-  try {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return;
 
-    const url = `${API}?nama=${user.nama}&role=${user.role}`;
+  const res = await fetch(`${API}?nama=${user.nama}&role=${user.role}`);
+  const data = await res.json();
 
-    const res = await fetch(url);
-    const data = await res.json();
+  const el = document.getElementById("list");
+  el.innerHTML = "";
 
-    const el = document.getElementById("list");
-    if (!el) return;
+  // DASHBOARD
+  document.getElementById("total").innerText = data.length;
+  document.getElementById("selesai").innerText = data.filter(d => d.status === "Selesai").length;
+  document.getElementById("pending").innerText = data.filter(d => d.status === "Pending").length;
 
-    el.innerHTML = "";
+  data.reverse().forEach(d => {
 
-    // ================= DASHBOARD =================
-    const total = data.length;
-    const selesai = data.filter(d => d.status === "Selesai").length;
-    const pending = data.filter(d => d.status === "Pending").length;
+    const badgeApproval = d.approval === "Approved"
+      ? `<span class="badge bg-primary">Approved</span>`
+      : `<span class="badge bg-secondary">Pending</span>`;
 
-    document.getElementById("total").innerText = total;
-    document.getElementById("selesai").innerText = selesai;
-    document.getElementById("pending").innerText = pending;
+    const actionButtons = d.approval !== "Approved"
+      ? `
+        <button class="btn btn-sm btn-warning" onclick="editData(${d.row})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="hapus(${d.row})">Hapus</button>
+      `
+      : "";
 
-    // ================= LIST =================
-    data.reverse().forEach(d => {
-      el.innerHTML += `
-        <div class="col-12">
-          <div class="card shadow-sm">
-            <div class="card-body">
+    const adminButton = user.role === "admin" && d.approval !== "Approved"
+      ? `<button class="btn btn-sm btn-success" onclick="approve(${d.row})">Approve</button>`
+      : "";
 
-              <div class="d-flex justify-content-between">
-                <b>${d.nama}</b>
-                <span class="badge ${d.status === 'Selesai' ? 'bg-success' : 'bg-warning'}">
-                  ${d.status}
-                </span>
-              </div>
+    el.innerHTML += `
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-body">
 
-              <small>${d.tanggal || '-'}</small>
-
-              <p class="mb-1"><b>${d.lokasi || '-'}</b> - ${d.pekerjaan || '-'}</p>
-              <p class="text-muted">${d.deskripsi || '-'}</p>
-
-              ${d.foto ? `<img src="${d.foto}" class="img-fluid mt-2 rounded">` : ""}
-
+            <div class="d-flex justify-content-between">
+              <b>${d.nama}</b>
+              ${badgeApproval}
             </div>
+
+            <small>${d.tanggal || "-"}</small>
+
+            <p class="mb-1"><b>${d.lokasi}</b> - ${d.pekerjaan}</p>
+            <p>${d.deskripsi || "-"}</p>
+
+            ${d.foto ? `<img src="${d.foto}" class="img-fluid rounded mt-2">` : ""}
+
+            <div class="mt-2 d-flex gap-2">
+              ${actionButtons}
+              ${adminButton}
+            </div>
+
           </div>
         </div>
-      `;
-    });
-
-  } catch (err) {
-    console.error("LOAD ERROR:", err);
-  }
+      </div>
+    `;
+  });
 }
 
 // ================= INIT =================
