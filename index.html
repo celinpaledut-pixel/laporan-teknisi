@@ -22,6 +22,14 @@
 <!-- APP -->
 <div id="appBox" style="display:none;">
 
+<!-- HEADER USER -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <b id="userInfo"></b>
+  </div>
+  <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
+</div>
+
 <!-- FORM -->
 <div class="card mb-3">
 <div class="card-body">
@@ -37,7 +45,7 @@
 
 <textarea id="deskripsi" class="form-control mb-2" placeholder="Deskripsi"></textarea>
 
-<input type="file" id="foto" class="form-control mb-2">
+<input type="file" id="foto" class="form-control mb-2" accept="image/*">
 
 <button onclick="simpan()" class="btn btn-success w-100">Simpan</button>
 
@@ -51,7 +59,7 @@
 </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL FOTO -->
 <div class="modal fade" id="imgModal">
 <div class="modal-dialog modal-lg modal-dialog-centered">
 <div class="modal-content bg-dark">
