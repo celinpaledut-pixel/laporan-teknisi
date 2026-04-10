@@ -2,7 +2,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyFYjTPrsd_0xsjJ1G7ge44
 
 let user = {};
 let editRow = null;
-let fotoBase64 = ""; // 🔥 FIX UTAMA
+let fotoBase64 = "";
 
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", () => {
@@ -19,12 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // 🔥 convert ke base64
       fotoBase64 = await toBase64(file);
-
       console.log("FOTO READY:", fotoBase64.length);
 
-      // preview
       const preview = document.getElementById("previewImg");
       if (preview) {
         preview.src = fotoBase64;
@@ -38,6 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
 async function login() {
   const nama = document.getElementById("nama").value;
   const pin = document.getElementById("pin").value;
+
+  if (!nama || !pin) {
+    alert("Isi nama & PIN");
+    return;
+  }
 
   const res = await fetch(API_URL, {
     method: "POST",
@@ -85,10 +87,8 @@ function setTanggal() {
 function toBase64(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
-
     reader.onload = () => resolve(reader.result || "");
     reader.onerror = () => resolve("");
-
     reader.readAsDataURL(file);
   });
 }
@@ -96,9 +96,14 @@ function toBase64(file) {
 // ================= SIMPAN =================
 async function simpan() {
   try {
+    if (!user.nama) {
+      alert("Harus login dulu");
+      return;
+    }
+
     const action = editRow ? "edit" : "save";
 
-    if (action === "save" && (!fotoBase64 || fotoBase64.length < 100)) {
+    if (action === "save" && (!fotoBase64 || fotoBase64.length < 1000)) {
       alert("Foto wajib diisi!");
       return;
     }
@@ -118,13 +123,13 @@ async function simpan() {
     };
 
     const formData = new FormData();
-formData.append("data", JSON.stringify(payload));
+    formData.append("data", JSON.stringify(payload));
 
-await fetch(API_URL, {
-  method: "POST",
-  body: formData
-});
-});
+    await fetch(API_URL, {
+      method: "POST",
+      body: formData
+    });
+
     resetForm();
     loadData();
 
@@ -134,7 +139,7 @@ await fetch(API_URL, {
   }
 }
 
-// ================= RESET FORM =================
+// ================= RESET =================
 function resetForm() {
   editRow = null;
   fotoBase64 = "";
@@ -157,6 +162,8 @@ function resetForm() {
 
 // ================= LOAD DATA =================
 async function loadData() {
+  if (!user.nama) return;
+
   const res = await fetch(API_URL + "?nama=" + user.nama + "&role=" + user.role);
   const data = await res.json();
 
@@ -166,10 +173,9 @@ async function loadData() {
     html = `<div class="alert alert-warning">Belum ada laporan</div>`;
   }
 
+  const safe = (t) => (t || "").toString().replace(/'/g, "");
+
   data.forEach(d => {
-
-    const safe = (text) => (text || "").toString().replace(/'/g, "");
-
     html += `
     <div class="card mb-3 ${d.approval === 'Approved' ? 'border-primary' : ''}">
       <div class="card-body">
