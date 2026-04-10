@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbx3xsDhWhAOwNh7vrgXKQstmnytTye15cvYZ58dE73KXRnVOb5AsEePoUtUCuwNWpS6NA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzjNuD4IEHBPJRVA1ArFWMxMkaJOGhWQKdysuxebixiFG5cfAwgLPnQaIJeB2ap4K6jAw/exec";
 
 let user = {};
 let editRow = null;
@@ -98,13 +98,12 @@ async function simpan() {
   try {
     const action = editRow ? "edit" : "save";
 
-    // 🔥 VALIDASI FOTO (KHUSUS SAVE)
     if (action === "save" && (!fotoBase64 || fotoBase64.length < 100)) {
       alert("Foto wajib diisi!");
       return;
     }
 
-    console.log("KIRIM FOTO:", fotoBase64 ? fotoBase64.length : 0);
+    console.log("KIRIM FOTO:", fotoBase64.length);
 
     const payload = {
       action,
@@ -115,22 +114,21 @@ async function simpan() {
       pekerjaan: document.getElementById("pekerjaan").value,
       deskripsi: document.getElementById("deskripsi").value,
       status: document.getElementById("status").value,
-      foto: action === "save" ? fotoBase64 : "" // 🔥 FIX
+      foto: fotoBase64
     };
 
     await fetch(API_URL, {
       method: "POST",
+      headers: { "Content-Type": "application/json" }, // 🔥 FIX UTAMA
       body: JSON.stringify(payload)
     });
 
-    // RESET
     resetForm();
-
     loadData();
 
   } catch (err) {
     console.error(err);
-    alert("Gagal simpan data");
+    alert("Gagal simpan");
   }
 }
 
