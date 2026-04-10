@@ -117,10 +117,13 @@ async function simpan() {
       foto: fotoBase64
     };
 
-    await fetch(API_URL, {
+    const formData = new FormData();
+formData.append("data", JSON.stringify(payload));
+
+await fetch(API_URL, {
   method: "POST",
-  mode: "no-cors", // 🔥 FIX PALING AMAN
-  body: JSON.stringify(payload)
+  body: formData
+});
 });
     resetForm();
     loadData();
