@@ -2,13 +2,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzAjKS3P8DSQqxn9DC0W3Wz
 
 let user = {};
 let editRow = null;
+let fotoBase64 = ""; // 🔥 FIX UTAMA
 
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", () => {
   const fotoInput = document.getElementById("foto");
 
   if (fotoInput) {
-    fotoInput.addEventListener("change", function () {
+    fotoInput.addEventListener("change", async function () {
       const file = this.files[0];
       if (!file) return;
 
@@ -18,16 +19,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const preview = document.getElementById("previewImg");
-        if (preview) {
-          preview.src = e.target.result;
-          preview.style.display = "block";
-        }
-      };
+      // 🔥 convert ke base64
+      fotoBase64 = await toBase64(file);
 
-      reader.readAsDataURL(file);
+      console.log("FOTO READY:", fotoBase64.length);
+
+      // preview
+      const preview = document.getElementById("previewImg");
+      if (preview) {
+        preview.src = fotoBase64;
+        preview.style.display = "block";
+      }
     });
   }
 });
@@ -64,6 +66,7 @@ async function login() {
 function logout() {
   user = {};
   editRow = null;
+  fotoBase64 = "";
 
   document.getElementById("loginBox").style.display = "block";
   document.getElementById("appBox").style.display = "none";
@@ -81,11 +84,9 @@ function setTanggal() {
 // ================= BASE64 =================
 function toBase64(file) {
   return new Promise((resolve) => {
-    if (!file) return resolve("");
-
     const reader = new FileReader();
 
-    reader.onloadend = () => resolve(reader.result || "");
+    reader.onload = () => resolve(reader.result || "");
     reader.onerror = () => resolve("");
 
     reader.readAsDataURL(file);
@@ -94,21 +95,18 @@ function toBase64(file) {
 
 // ================= SIMPAN =================
 async function simpan() {
-  const fileInput = document.getElementById("foto");
-  const file = fileInput.files[0];
+  try {
+    const action = editRow ? "edit" : "save";
 
-  let base64 = "";
+    // 🔥 VALIDASI FOTO (KHUSUS SAVE)
+    if (action === "save" && (!fotoBase64 || fotoBase64.length < 100)) {
+      alert("Foto wajib diisi!");
+      return;
+    }
 
-  if (file) {
-    base64 = await toBase64(file);
-    console.log("Foto size:", base64.length);
-  }
+    console.log("KIRIM FOTO:", fotoBase64 ? fotoBase64.length : 0);
 
-  const action = editRow ? "edit" : "save";
-
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
+    const payload = {
       action,
       row: editRow,
       nama: user.nama,
@@ -117,13 +115,31 @@ async function simpan() {
       pekerjaan: document.getElementById("pekerjaan").value,
       deskripsi: document.getElementById("deskripsi").value,
       status: document.getElementById("status").value,
-      foto: base64
-    })
-  });
+      foto: action === "save" ? fotoBase64 : "" // 🔥 FIX
+    };
 
-  // RESET
-  fileInput.value = "";
+    await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    // RESET
+    resetForm();
+
+    loadData();
+
+  } catch (err) {
+    console.error(err);
+    alert("Gagal simpan data");
+  }
+}
+
+// ================= RESET FORM =================
+function resetForm() {
   editRow = null;
+  fotoBase64 = "";
+
+  document.getElementById("foto").value = "";
 
   const preview = document.getElementById("previewImg");
   if (preview) {
@@ -131,8 +147,12 @@ async function simpan() {
     preview.src = "";
   }
 
+  document.getElementById("lokasi").value = "";
+  document.getElementById("pekerjaan").value = "";
+  document.getElementById("deskripsi").value = "";
+  document.getElementById("status").value = "";
+
   setTanggal();
-  loadData();
 }
 
 // ================= LOAD DATA =================
@@ -147,19 +167,22 @@ async function loadData() {
   }
 
   data.forEach(d => {
+
+    const safe = (text) => (text || "").toString().replace(/'/g, "");
+
     html += `
-    <div class="card mb-3">
+    <div class="card mb-3 ${d.approval === 'Approved' ? 'border-primary' : ''}">
       <div class="card-body">
 
-        <h6>${d.pekerjaan}</h6>
+        <h6>${safe(d.pekerjaan)}</h6>
 
-        <small><b>${d.nama}</b> | ${d.tanggal} | ${d.lokasi}</small>
+        <small><b>${safe(d.nama)}</b> | ${safe(d.tanggal)} | ${safe(d.lokasi)}</small>
 
-        <p>${d.deskripsi}</p>
+        <p>${safe(d.deskripsi)}</p>
 
-        <span class="badge bg-info">${d.status}</span>
-        <span class="badge bg-${d.approval === 'Approved' ? 'success' : 'warning'}">
-          ${d.approval}
+        <span class="badge bg-info">${safe(d.status)}</span>
+        <span class="badge bg-${d.approval === 'Approved' ? 'primary' : 'warning'}">
+          ${safe(d.approval)}
         </span>
 
         ${d.foto ? `
@@ -173,7 +196,7 @@ async function loadData() {
         <div class="mt-2">
 
           ${d.approval !== "Approved" ? `
-            <button onclick="editData(${d.row}, '${d.tanggal}', '${d.lokasi}', '${d.pekerjaan}', '${d.deskripsi}', '${d.status}')"
+            <button onclick="editData(${d.row}, '${safe(d.tanggal)}', '${safe(d.lokasi)}', '${safe(d.pekerjaan)}', '${safe(d.deskripsi)}', '${safe(d.status)}')"
               class="btn btn-sm btn-warning">Edit</button>
 
             <button onclick="hapus(${d.row})"
@@ -208,6 +231,8 @@ function editData(row, t, l, p, d, s) {
 
 // ================= DELETE =================
 async function hapus(row) {
+  if (!confirm("Hapus data ini?")) return;
+
   await fetch(API_URL, {
     method: "POST",
     body: JSON.stringify({ action: "delete", row })
