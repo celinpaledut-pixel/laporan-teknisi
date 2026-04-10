@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbzAjKS3P8DSQqxn9DC0W3WzJMIG3gcZQQE-tiy4o0Xd1fZ_QFDkHLUZZ87Xbr_Qcaroww/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx3xsDhWhAOwNh7vrgXKQstmnytTye15cvYZ58dE73KXRnVOb5AsEePoUtUCuwNWpS6NA/exec";
 
 let user = {};
 let editRow = null;
