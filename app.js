@@ -11,8 +11,7 @@ function previewFoto(e) {
   if (!file) return;
 
   const reader = new FileReader();
-
-  reader.onload = function(evt) {
+  reader.onload = evt => {
     fotoBase64 = evt.target.result;
 
     const img = document.getElementById("preview");
@@ -33,10 +32,7 @@ async function login() {
   const nama = val("loginNama");
   const pin = val("loginPin");
 
-  if (!nama || !pin) {
-    alert("Isi semua!");
-    return;
-  }
+  if (!nama || !pin) return alert("Isi semua!");
 
   try {
     const res = await fetch(API, {
@@ -54,7 +50,7 @@ async function login() {
       alert("Login gagal");
     }
 
-  } catch (err) {
+  } catch {
     alert("Koneksi gagal");
   }
 }
@@ -74,9 +70,7 @@ function initApp() {
   document.getElementById("appBox").style.display = "block";
 
   document.getElementById("nama").value = user.nama;
-
-  const roleEl = document.getElementById("roleBadge");
-  if (roleEl) roleEl.innerText = user.role;
+  document.getElementById("roleBadge").innerText = user.role;
 
   setTanggalNow();
   loadData();
@@ -92,6 +86,15 @@ function setTanggalNow() {
   document.getElementById("tanggal").value = local;
 }
 
+// ================= SUBMIT =================
+function submitForm(e) {
+  if (editMode) {
+    updateData();
+  } else {
+    kirim(e);
+  }
+}
+
 // ================= KIRIM =================
 async function kirim(e) {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -99,25 +102,114 @@ async function kirim(e) {
 
   if (!fotoBase64) return alert("Foto wajib");
 
-  const data = {
-    action: "save",
-    nama: user.nama,
-    tanggal: val("tanggal"),
-    lokasi: val("lokasi"),
-    pekerjaan: val("pekerjaan"),
-    deskripsi: val("deskripsi"),
-    status: val("status"),
-    foto: fotoBase64
-  };
+  const btn = document.getElementById("btnSubmit");
+  btn.disabled = true;
+  btn.innerText = "Mengirim...";
+
+  try {
+    await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        action: "save",
+        nama: user.nama,
+        tanggal: val("tanggal"),
+        lokasi: val("lokasi"),
+        pekerjaan: val("pekerjaan"),
+        deskripsi: val("deskripsi"),
+        status: val("status"),
+        foto: fotoBase64
+      })
+    });
+
+    alert("Berhasil");
+    clearForm();
+    loadData();
+
+  } catch {
+    alert("Gagal kirim");
+  }
+
+  btn.disabled = false;
+  btn.innerText = "🚀 Kirim Laporan";
+}
+
+// ================= EDIT MODE =================
+function editData(row, data) {
+  editMode = true;
+  editRow = row;
+
+  document.getElementById("tanggal").value = data.tanggal;
+  document.getElementById("lokasi").value = data.lokasi;
+  document.getElementById("pekerjaan").value = data.pekerjaan;
+  document.getElementById("deskripsi").value = data.deskripsi;
+  document.getElementById("status").value = data.status;
+
+  document.getElementById("btnSubmit").innerText = "💾 Update";
+  document.getElementById("btnCancel").style.display = "block";
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function updateData() {
+  try {
+    await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        action: "edit",
+        row: editRow,
+        tanggal: val("tanggal"),
+        lokasi: val("lokasi"),
+        pekerjaan: val("pekerjaan"),
+        deskripsi: val("deskripsi"),
+        status: val("status")
+      })
+    });
+
+    alert("Update berhasil");
+
+    batalEdit();
+    loadData();
+
+  } catch {
+    alert("Gagal update");
+  }
+}
+
+function batalEdit() {
+  editMode = false;
+  editRow = null;
+
+  document.getElementById("btnSubmit").innerText = "🚀 Kirim Laporan";
+  document.getElementById("btnCancel").style.display = "none";
+
+  clearForm();
+}
+
+// ================= DELETE =================
+async function hapus(row) {
+  if (!confirm("Hapus laporan?")) return;
 
   await fetch(API, {
     method: "POST",
     headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify(data)
+    body: JSON.stringify({ action: "delete", row })
   });
 
-  alert("Berhasil");
-  clearForm();
+  loadData();
+}
+
+// ================= APPROVE =================
+async function approve(row) {
+  if (!confirm("Approve laporan?")) return;
+
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ action: "approve", row })
+  });
+
   loadData();
 }
 
@@ -132,105 +224,7 @@ function clearForm() {
   if (img) img.style.display = "none";
 }
 
-// ================= ACTION =================
-async function approve(row) {
-  if (!confirm("Approve laporan?")) return;
-
-  await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({ action: "approve", row })
-  });
-
-  loadData();
-}
-
-function editData(row, data) {
-  editMode = true;
-  editRow = row;
-
-  // isi form
-  document.getElementById("tanggal").value = data.tanggal;
-  document.getElementById("lokasi").value = data.lokasi;
-  document.getElementById("pekerjaan").value = data.pekerjaan;
-  document.getElementById("deskripsi").value = data.deskripsi;
-  document.getElementById("status").value = data.status;
-
-  // tombol berubah
-  document.getElementById("btnSubmit").innerText = "💾 Update Laporan";
-  document.getElementById("btnCancel").style.display = "block";
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-async function updateData() {
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  const data = {
-    action: "edit",
-    row: editRow,
-    tanggal: val("tanggal"),
-    lokasi: val("lokasi"),
-    pekerjaan: val("pekerjaan"),
-    deskripsi: val("deskripsi"),
-    status: val("status")
-  };
-
-  await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify(data)
-  });
-
-  alert("Data berhasil diupdate");
-
-  batalEdit();
-  loadData();
-}
-
-function batalEdit() {
-  editMode = false;
-  editRow = null;
-
-  document.getElementById("btnSubmit").innerText = "🚀 Kirim Laporan";
-  document.getElementById("btnCancel").style.display = "none";
-
-  clearForm();
-}
-async function hapus(row) {
-  if (!confirm("Hapus laporan?")) return;
-
-  await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({ action: "delete", row })
-  });
-
-  loadData();
-}
-
-async function editData(row) {
-  const lokasi = prompt("Lokasi baru:");
-  if (!lokasi) return;
-
-  await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({
-      action: "edit",
-      row,
-      tanggal: val("tanggal"),
-      lokasi,
-      pekerjaan: val("pekerjaan"),
-      deskripsi: val("deskripsi"),
-      status: val("status")
-    })
-  });
-
-  loadData();
-}
-
-// ================= LOAD DATA =================
+// ================= LOAD =================
 async function loadData() {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user) return;
@@ -241,25 +235,22 @@ async function loadData() {
   const el = document.getElementById("list");
   el.innerHTML = "";
 
-  // DASHBOARD
   document.getElementById("total").innerText = data.length;
   document.getElementById("selesai").innerText = data.filter(d => d.status === "Selesai").length;
   document.getElementById("pending").innerText = data.filter(d => d.status === "Pending").length;
 
   data.reverse().forEach(d => {
 
-    const badgeApproval = d.approval === "Approved"
+    const badge = d.approval === "Approved"
       ? `<span class="badge bg-primary">Approved</span>`
       : `<span class="badge bg-secondary">Pending</span>`;
 
-    const actionButtons = d.approval !== "Approved"
-      ? `
-        <button class="btn btn-sm btn-warning" onclick="editData(${d.row})">Edit</button>
-        <button class="btn btn-sm btn-danger" onclick="hapus(${d.row})">Hapus</button>
-      `
+    const actions = d.approval !== "Approved"
+      ? `<button class="btn btn-sm btn-warning" onclick='editData(${d.row}, ${JSON.stringify(d)})'>Edit</button>
+         <button class="btn btn-sm btn-danger" onclick="hapus(${d.row})">Hapus</button>`
       : "";
 
-    const adminButton = user.role === "admin" && d.approval !== "Approved"
+    const approveBtn = user.role === "admin" && d.approval !== "Approved"
       ? `<button class="btn btn-sm btn-success" onclick="approve(${d.row})">Approve</button>`
       : "";
 
@@ -270,19 +261,19 @@ async function loadData() {
 
             <div class="d-flex justify-content-between">
               <b>${d.nama}</b>
-              ${badgeApproval}
+              ${badge}
             </div>
 
             <small>${d.tanggal || "-"}</small>
 
-            <p class="mb-1"><b>${d.lokasi}</b> - ${d.pekerjaan}</p>
+            <p><b>${d.lokasi}</b> - ${d.pekerjaan}</p>
             <p>${d.deskripsi || "-"}</p>
 
             ${d.foto ? `<img src="${d.foto}" class="img-fluid rounded mt-2">` : ""}
 
             <div class="mt-2 d-flex gap-2">
-              ${actionButtons}
-              ${adminButton}
+              ${actions}
+              ${approveBtn}
             </div>
 
           </div>
