@@ -1,5 +1,5 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbzjNuD4IEHBPJRVA1ArFWMxMkaJOGhWQKdysuxebixiFG5cfAwgLPnQaIJeB2ap4K6jAw/exec";
-
+const API_URL = "https://script.google.com/macros/s/AKfycbw4Wz4WODnBNYp-ac6Ko3BDRlKbCzue3sKCfbWBRtUwdlFFGWHfXomvkEhB4J35PBylQg/exec";
+ 
 let user = {};
 let editRow = null;
 let fotoBase64 = ""; // 🔥 FIX UTAMA
@@ -118,11 +118,10 @@ async function simpan() {
     };
 
     await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }, // 🔥 FIX UTAMA
-      body: JSON.stringify(payload)
-    });
-
+  method: "POST",
+  mode: "no-cors", // 🔥 FIX PALING AMAN
+  body: JSON.stringify(payload)
+});
     resetForm();
     loadData();
 
