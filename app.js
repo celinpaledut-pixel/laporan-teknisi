@@ -246,66 +246,72 @@ function zoomImage(src) {
 }
 // ================= LOAD =================
 async function loadData() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) return;
+  try {
+    const res = await fetch(API_URL + "?action=get&nama=" + user.nama + "&role=" + user.role);
+    const data = await res.json();
 
-  const res = await fetch(`${API}?nama=${user.nama}&role=${user.role}`);
-  const data = await res.json();
+    console.log("DATA:", data);
 
-  const el = document.getElementById("list");
-  el.innerHTML = "";
+    let html = "";
 
-  document.getElementById("total").innerText = data.length;
-  document.getElementById("selesai").innerText = data.filter(d => d.status === "Selesai").length;
-  document.getElementById("pending").innerText = data.filter(d => d.status === "Pending").length;
+    data.forEach(d => {
 
-  data.reverse().forEach(d => {
+      // ================= FIX URL =================
+      let fotoUrl = "";
 
-    const badge = d.approval === "Approved"
-      ? `<span class="badge bg-primary">Approved</span>`
-      : `<span class="badge bg-secondary">Pending</span>`;
+      if (d.foto) {
+        // format /file/d/ID/view
+        const match = d.foto.match(/\/d\/(.*?)\//);
+        if (match) {
+          fotoUrl = "https://drive.google.com/uc?id=" + match[1];
+        } 
+        // format sudah benar
+        else if (d.foto.includes("uc?id=")) {
+          fotoUrl = d.foto;
+        } 
+        // fallback
+        else {
+          fotoUrl = d.foto;
+        }
+      }
 
-    const actions = d.approval !== "Approved"
-      ? `<button class="btn btn-sm btn-warning" onclick='editData(${d.row}, ${JSON.stringify(d)})'>Edit</button>
-         <button class="btn btn-sm btn-danger" onclick="hapus(${d.row})">Hapus</button>`
-      : "";
-
-    const approveBtn = user.role === "admin" && d.approval !== "Approved"
-      ? `<button class="btn btn-sm btn-success" onclick="approve(${d.row})">Approve</button>`
-      : "";
-
-    el.innerHTML += `
-      <div class="col-12">
-        <div class="card shadow-sm">
+      html += `
+        <div class="card mb-3 shadow-sm">
           <div class="card-body">
 
-            <div class="d-flex justify-content-between">
-              <b>${d.nama}</b>
-              ${badge}
-            </div>
+            <h6 class="mb-1">${d.pekerjaan || "-"}</h6>
+            <small class="text-muted">${d.tanggal || "-"} - ${d.lokasi || "-"}</small>
 
-            <small>${d.tanggal || "-"}</small>
+            <p class="mt-2 mb-1">${d.deskripsi || "-"}</p>
 
-            <p><b>${d.lokasi}</b> - ${d.pekerjaan}</p>
-            <p>${d.deskripsi || "-"}</p>
+            <span class="badge bg-${d.approval === 'Approved' ? 'primary' : 'warning'}">
+              ${d.approval || "Pending"}
+            </span>
 
-            ${d.foto ? `
-  <img src="${d.foto}" 
-       class="img-fluid rounded mt-2"
-       style="cursor:pointer; max-height:150px;"
-       onclick="zoomImage('${d.foto}')">
-` : ""}
-
-            <div class="mt-2 d-flex gap-2">
-              ${actions}
-              ${approveBtn}
-            </div>
+            ${fotoUrl ? `
+              <div class="mt-2">
+                <img src="${fotoUrl}"
+                     class="img-fluid rounded border"
+                     style="max-height:150px; cursor:pointer;"
+                     onclick="document.getElementById('modalImg').src='${fotoUrl}'; new bootstrap.Modal(document.getElementById('imgModal')).show();"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=No+Image';">
+              </div>
+            ` : `
+              <div class="text-muted small mt-2">Tidak ada foto</div>
+            `}
 
           </div>
         </div>
-      </div>
-    `;
-  });
+      `;
+    });
+
+    document.getElementById("listData").innerHTML = html;
+
+  } catch (err) {
+    console.error("ERROR LOAD DATA:", err);
+    document.getElementById("listData").innerHTML =
+      `<div class="alert alert-danger">Gagal load data</div>`;
+  }
 }
 
 // ================= INIT =================
