@@ -122,17 +122,17 @@ async function simpan() {
       foto: fotoBase64
     };
 
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(payload));
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
 
-    await fetch(API_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "text/plain;charset=utf-8"
-  },
-  body: JSON.stringify(payload)
-});
-    
+    const result = await res.json();
+    console.log("RESP:", result);
+
     resetForm();
     loadData();
 
