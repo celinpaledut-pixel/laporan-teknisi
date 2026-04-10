@@ -17,37 +17,59 @@ async function login() {
 
   if (data.status === "success") {
     user = data;
-    loginBox.style.display = "none";
-    appBox.style.display = "block";
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("appBox").style.display = "block";
+
+    // ✅ tampilkan nama user
+    document.getElementById("userInfo").innerText =
+      "Login: " + user.nama + " (" + user.role + ")";
 
     setTanggal();
     loadData();
+
   } else {
     alert("Login gagal");
   }
 }
 
+// ================= LOGOUT =================
+function logout() {
+  user = {};
+  editRow = null;
+
+  document.getElementById("loginBox").style.display = "block";
+  document.getElementById("appBox").style.display = "none";
+
+  document.getElementById("nama").value = "";
+  document.getElementById("pin").value = "";
+}
+
 // ================= TANGGAL =================
 function setTanggal() {
   const now = new Date();
-  tanggal.value = now.toLocaleString();
+  document.getElementById("tanggal").value = now.toLocaleString();
 }
 
-// ================= BASE64 =================
+// ================= BASE64 FOTO =================
 function toBase64(file) {
-  return new Promise((res, rej) => {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve("");
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => res(reader.result);
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve("");
   });
 }
 
 // ================= SIMPAN =================
 async function simpan() {
-  const file = foto.files[0];
-  let base64 = "";
+  const fileInput = document.getElementById("foto");
+  const file = fileInput.files[0];
 
-  if (file) base64 = await toBase64(file);
+  const base64 = await toBase64(file);
 
   const action = editRow ? "edit" : "save";
 
@@ -57,25 +79,33 @@ async function simpan() {
       action,
       row: editRow,
       nama: user.nama,
-      tanggal: tanggal.value,
-      lokasi: lokasi.value,
-      pekerjaan: pekerjaan.value,
-      deskripsi: deskripsi.value,
-      status: status.value,
+      tanggal: document.getElementById("tanggal").value,
+      lokasi: document.getElementById("lokasi").value,
+      pekerjaan: document.getElementById("pekerjaan").value,
+      deskripsi: document.getElementById("deskripsi").value,
+      status: document.getElementById("status").value,
       foto: base64
     })
   });
 
+  // reset form
+  fileInput.value = "";
   editRow = null;
+
+  setTanggal();
   loadData();
 }
 
-// ================= LOAD =================
+// ================= LOAD DATA =================
 async function loadData() {
   const res = await fetch(API_URL + "?nama=" + user.nama + "&role=" + user.role);
   const data = await res.json();
 
   let html = "";
+
+  if (!data.length) {
+    html = `<div class="alert alert-warning">Belum ada laporan</div>`;
+  }
 
   data.forEach(d => {
     html += `
@@ -83,19 +113,23 @@ async function loadData() {
       <div class="card-body">
 
         <h6>${d.pekerjaan}</h6>
-        <small>${d.nama} | ${d.tanggal}</small>
+
+        <!-- ✅ NAMA TEKNISI FIX -->
+        <small><b>${d.nama}</b> | ${d.tanggal} | ${d.lokasi}</small>
 
         <p>${d.deskripsi}</p>
 
         <span class="badge bg-info">${d.status}</span>
-        <span class="badge bg-${d.approval === 'Approved' ? 'primary' : 'warning'}">
+        <span class="badge bg-${d.approval === 'Approved' ? 'success' : 'warning'}">
           ${d.approval}
         </span>
 
         ${d.foto ? `
-        <img src="${d.foto}" class="img-fluid mt-2"
-             style="max-height:150px; cursor:pointer;"
-             onclick="showImg('${d.foto}')">
+          <img src="${d.foto}"
+               class="img-fluid mt-2 rounded"
+               style="max-height:150px; cursor:pointer;"
+               onclick="showImg('${d.foto}')"
+               onerror="this.style.display='none'">
         ` : ""}
 
         <div class="mt-2">
@@ -120,17 +154,18 @@ async function loadData() {
     `;
   });
 
-  listData.innerHTML = html;
+  document.getElementById("listData").innerHTML = html;
 }
 
 // ================= EDIT =================
 function editData(row, t, l, p, d, s) {
   editRow = row;
-  tanggal.value = t;
-  lokasi.value = l;
-  pekerjaan.value = p;
-  deskripsi.value = d;
-  status.value = s;
+
+  document.getElementById("tanggal").value = t;
+  document.getElementById("lokasi").value = l;
+  document.getElementById("pekerjaan").value = p;
+  document.getElementById("deskripsi").value = d;
+  document.getElementById("status").value = s;
 }
 
 // ================= DELETE =================
@@ -139,6 +174,7 @@ async function hapus(row) {
     method: "POST",
     body: JSON.stringify({ action: "delete", row })
   });
+
   loadData();
 }
 
@@ -148,11 +184,12 @@ async function approve(row) {
     method: "POST",
     body: JSON.stringify({ action: "approve", row })
   });
+
   loadData();
 }
 
-// ================= ZOOM =================
+// ================= ZOOM FOTO =================
 function showImg(src) {
-  modalImg.src = src;
-  new bootstrap.Modal(imgModal).show();
+  document.getElementById("modalImg").src = src;
+  new bootstrap.Modal(document.getElementById("imgModal")).show();
 }
