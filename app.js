@@ -2,6 +2,8 @@ const API = "https://script.google.com/macros/s/AKfycbzPsz-7ZJ93OIEwZkyWvqwmomHX
 
 // ================= STATE =================
 let fotoBase64 = "";
+let editMode = false;
+let editRow = null;
 
 // ================= FOTO =================
 function previewFoto(e) {
@@ -143,6 +145,58 @@ async function approve(row) {
   loadData();
 }
 
+function editData(row, data) {
+  editMode = true;
+  editRow = row;
+
+  // isi form
+  document.getElementById("tanggal").value = data.tanggal;
+  document.getElementById("lokasi").value = data.lokasi;
+  document.getElementById("pekerjaan").value = data.pekerjaan;
+  document.getElementById("deskripsi").value = data.deskripsi;
+  document.getElementById("status").value = data.status;
+
+  // tombol berubah
+  document.getElementById("btnSubmit").innerText = "💾 Update Laporan";
+  document.getElementById("btnCancel").style.display = "block";
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function updateData() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const data = {
+    action: "edit",
+    row: editRow,
+    tanggal: val("tanggal"),
+    lokasi: val("lokasi"),
+    pekerjaan: val("pekerjaan"),
+    deskripsi: val("deskripsi"),
+    status: val("status")
+  };
+
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify(data)
+  });
+
+  alert("Data berhasil diupdate");
+
+  batalEdit();
+  loadData();
+}
+
+function batalEdit() {
+  editMode = false;
+  editRow = null;
+
+  document.getElementById("btnSubmit").innerText = "🚀 Kirim Laporan";
+  document.getElementById("btnCancel").style.display = "none";
+
+  clearForm();
+}
 async function hapus(row) {
   if (!confirm("Hapus laporan?")) return;
 
