@@ -45,7 +45,11 @@
 
 <textarea id="deskripsi" class="form-control mb-2" placeholder="Deskripsi"></textarea>
 
-<input type="file" id="foto" class="form-control mb-2" accept="image/*">
+
+<input type="file" id="foto" class="form-control mb-2" accept="image/*" capture="environment">
+
+<!-- PREVIEW FOTO -->
+<img id="previewImg" class="img-fluid rounded mb-2" style="max-height:150px; display:none;">
 
 <button onclick="simpan()" class="btn btn-success w-100">Simpan</button>
 
