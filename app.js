@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbx1W4Gf3P1s1tXU34IVpjpuSKU6n1leqLbWaMDu3kQoQU1P538jt0iyy9jAP70ovTfSwA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxCQKkG0islQNowrIA5TNiZQkN9qAXmLTBGjg26tFpuewjvwdAD1eH4JyCsHxzcD1A1JQ/exec";
 
 let user = {};
 let editRow = null;
@@ -122,13 +122,12 @@ async function simpan() {
       foto: fotoBase64
     };
 
-    // 🔥 WAJIB pakai FormData
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(payload));
-
     const res = await fetch(API_URL, {
       method: "POST",
-      body: formData
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
     });
 
     const result = await res.json();
@@ -138,7 +137,7 @@ async function simpan() {
     loadData();
 
   } catch (err) {
-    console.error("ERROR SIMPAN:", err);
+    console.error(err);
     alert("Gagal simpan");
   }
 }
