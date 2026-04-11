@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbzENssnq1TbfPmBxlSpDbIpurJeRof_Qqg2aObVtSKgASC3faAollDbheqQ6Hq9GNd6IA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzdLrFmEQH725gf-guU8xLA3vnXbAwbQvmt8L5XRinQER-dh965IyzgLzJEKZf74XOaQA/exec";
 
 let user = {};
 let editRow = null;
@@ -36,26 +36,23 @@ async function login() {
   const nama = document.getElementById("nama").value;
   const pin = document.getElementById("pin").value;
 
-  if (!nama || !pin) {
-    alert("Isi nama & PIN");
-    return;
-  }
-
   const res = await fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify({ action: "login", nama, pin })
+    body: JSON.stringify({
+      action: "login",
+      nama,
+      pin
+    })
   });
 
   const data = await res.json();
 
   if (data.status === "success") {
     user = data;
-
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("appBox").style.display = "block";
-
     document.getElementById("userInfo").innerText =
-      "Login: " + user.nama + " (" + user.role + ")";
+      user.nama + " (" + user.role + ")";
 
     setTanggal();
     loadData();
