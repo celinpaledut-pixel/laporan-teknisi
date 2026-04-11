@@ -122,12 +122,13 @@ async function simpan() {
       foto: fotoBase64
     };
 
+    // 🔥 WAJIB pakai FormData
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify(payload)
+      body: formData
     });
 
     const result = await res.json();
