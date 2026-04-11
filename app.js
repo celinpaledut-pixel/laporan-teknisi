@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbzi0FxXGoxI3rhs0AaMQhHC9nh3dpSuo4PLgi0lG6R6kRvfFZ2jCpqg_sFhWxs2oirulA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbybYbGmgGxLSlUiconsENQREQmDxO3jHupzY3W4NndOBNXqe6yLYY24KLlumJpjM3WGwg/exec";
 
 let user = {};
 let editRow = null;
@@ -101,39 +101,34 @@ async function simpan() {
       return;
     }
 
-    const action = editRow ? "edit" : "save";
-
     const fileInput = document.getElementById("foto");
     const file = fileInput.files[0];
 
     let base64 = "";
-
     if (file) {
       base64 = await toBase64(file);
-    }
-
-    if (action === "save" && (!base64 || base64.length < 1000)) {
-      alert("Foto wajib diisi!");
-      return;
     }
 
     console.log("KIRIM FOTO:", base64.length);
 
     const payload = {
-      action,
-      row: editRow,
+      action: "save",
       nama: user.nama,
       tanggal: document.getElementById("tanggal").value,
       lokasi: document.getElementById("lokasi").value,
       pekerjaan: document.getElementById("pekerjaan").value,
       deskripsi: document.getElementById("deskripsi").value,
       status: document.getElementById("status").value,
-      foto: base64 // 🔥 LANGSUNG dari file
+      foto: base64
     };
+
+    // 🔥 KIRIM SEBAGAI FORM URL ENCODED
+    const body = new URLSearchParams();
+    body.append("data", JSON.stringify(payload));
 
     const res = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify(payload) // TANPA HEADER
+      body: body
     });
 
     const result = await res.json();
@@ -143,10 +138,11 @@ async function simpan() {
     loadData();
 
   } catch (err) {
-    console.error("ERROR:", err);
+    console.error(err);
     alert("Gagal simpan");
   }
 }
+
 // ================= RESET =================
 function resetForm() {
   editRow = null;
