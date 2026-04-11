@@ -103,12 +103,21 @@ async function simpan() {
 
     const action = editRow ? "edit" : "save";
 
-    if (action === "save" && (!fotoBase64 || fotoBase64.length < 1000)) {
+    const fileInput = document.getElementById("foto");
+    const file = fileInput.files[0];
+
+    let base64 = "";
+
+    if (file) {
+      base64 = await toBase64(file);
+    }
+
+    if (action === "save" && (!base64 || base64.length < 1000)) {
       alert("Foto wajib diisi!");
       return;
     }
 
-    console.log("KIRIM FOTO:", fotoBase64.length);
+    console.log("KIRIM FOTO:", base64.length);
 
     const payload = {
       action,
@@ -119,13 +128,12 @@ async function simpan() {
       pekerjaan: document.getElementById("pekerjaan").value,
       deskripsi: document.getElementById("deskripsi").value,
       status: document.getElementById("status").value,
-      foto: fotoBase64
+      foto: base64 // 🔥 LANGSUNG dari file
     };
 
     const res = await fetch(API_URL, {
       method: "POST",
-      // 🔥 JANGAN ADA HEADER
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload) // TANPA HEADER
     });
 
     const result = await res.json();
@@ -136,7 +144,7 @@ async function simpan() {
 
   } catch (err) {
     console.error("ERROR:", err);
-    alert("Gagal simpan (CORS)");
+    alert("Gagal simpan");
   }
 }
 // ================= RESET =================
