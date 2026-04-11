@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxOpOUU_Z3SKN0GzyIdF5tCAjQhCdGaPUBsdGYYbbq3EIBU2haW53JQVoH9CQelQW7ZXA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzENssnq1TbfPmBxlSpDbIpurJeRof_Qqg2aObVtSKgASC3faAollDbheqQ6Hq9GNd6IA/exec";
 
 let user = {};
 let editRow = null;
@@ -96,13 +96,7 @@ function toBase64(file) {
 // ================= SIMPAN =================
 async function simpan() {
   try {
-    if (!user.nama) {
-      alert("Harus login dulu");
-      return;
-    }
-
-    const fileInput = document.getElementById("foto");
-    const file = fileInput.files[0];
+    const file = document.getElementById("foto").files[0];
 
     let base64 = "";
     if (file) {
@@ -122,7 +116,6 @@ async function simpan() {
       foto: base64
     };
 
-    // 🔥 KIRIM SEBAGAI FORM URL ENCODED
     const body = new URLSearchParams();
     body.append("data", JSON.stringify(payload));
 
@@ -139,10 +132,8 @@ async function simpan() {
 
   } catch (err) {
     console.error(err);
-    alert("Gagal simpan");
   }
 }
-
 // ================= RESET =================
 function resetForm() {
   editRow = null;
