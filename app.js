@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxCQKkG0islQNowrIA5TNiZQkN9qAXmLTBGjg26tFpuewjvwdAD1eH4JyCsHxzcD1A1JQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwRpNHcr_cz1fp_-UP5XkskRZIZ9W6ptEgrsj9BlpaKW49Iu0M1KvU6hrnooUDx9iJs/exec";
 
 let user = {};
 let editRow = null;
@@ -124,9 +124,7 @@ async function simpan() {
 
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      // 🔥 JANGAN ADA HEADER
       body: JSON.stringify(payload)
     });
 
@@ -137,8 +135,8 @@ async function simpan() {
     loadData();
 
   } catch (err) {
-    console.error(err);
-    alert("Gagal simpan");
+    console.error("ERROR:", err);
+    alert("Gagal simpan (CORS)");
   }
 }
 // ================= RESET =================
